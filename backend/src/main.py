@@ -1,5 +1,5 @@
 """
-Main Flask Application Entry Point
+Main FastAPI Application Entry Point
 Implements dynamic module loading for hardware device control
 """
 
@@ -8,12 +8,16 @@ import sys
 import importlib
 import logging
 from pathlib import Path
+from typing import List, Dict, Any
 
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-from flask import Flask, send_from_directory, jsonify
-from flask_cors import CORS
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, JSONResponse
+import uvicorn
 
 # Configure logging
 logging.basicConfig(
@@ -22,24 +26,38 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Create Flask app
-app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'static'))
-app.config['SECRET_KEY'] = 'spectroscopy_control_interface_secret_key'
+# Create FastAPI app
+app = FastAPI(
+    title="IR Pump-Probe Spectroscopy Control Interface",
+    description="Unified control interface for IR spectroscopy hardware components",
+    version="1.0.0",
+    docs_url="/api/docs",
+    redoc_url="/api/redoc"
+)
 
 # Enable CORS for all routes (required for frontend-backend communication)
-CORS(app, origins="*")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, specify actual frontend origins
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-def discover_and_register_modules():
+# Global variable to store registered modules
+registered_modules: List[str] = []
+
+def discover_and_register_modules() -> List[str]:
     """
-    Dynamically discover and register all hardware module blueprints
+    Dynamically discover and register all hardware module routers
     Scans the modules directory and imports routes from each module
     """
     modules_dir = Path(__file__).parent / 'modules'
-    registered_modules = []
+    modules_registered = []
     
     if not modules_dir.exists():
         logger.warning(f"Modules directory not found: {modules_dir}")
-        return registered_modules
+        return modules_registered
     
     # Iterate through each module directory
     for module_path in modules_dir.iterdir():
@@ -53,55 +71,62 @@ def discover_and_register_modules():
                     module_import_path = f"src.modules.{module_name}.routes"
                     routes_module = importlib.import_module(module_import_path)
                     
-                    # Look for blueprint in the module
-                    # Convention: blueprint should be named {module_name}_bp
-                    blueprint_name = f"{module_name}_bp"
+                    # Look for router in the module
+                    # Convention: router should be named {module_name}_router
+                    router_name = f"{module_name}_router"
                     
-                    if hasattr(routes_module, blueprint_name):
-                        blueprint = getattr(routes_module, blueprint_name)
-                        app.register_blueprint(blueprint)
-                        registered_modules.append(module_name)
+                    if hasattr(routes_module, router_name):
+                        router = getattr(routes_module, router_name)
+                        app.include_router(router)
+                        modules_registered.append(module_name)
                         logger.info(f"Registered module: {module_name}")
                     else:
-                        logger.warning(f"No blueprint '{blueprint_name}' found in {module_name}")
+                        logger.warning(f"No router '{router_name}' found in {module_name}")
                         
                 except Exception as e:
                     logger.error(f"Failed to import module {module_name}: {e}")
             else:
                 logger.warning(f"No routes.py found in module: {module_name}")
     
-    return registered_modules
+    return modules_registered
 
 # Register all hardware modules
 registered_modules = discover_and_register_modules()
 
+# Response models
+class ApiResponse:
+    def __init__(self, status: str, message: str = None, data: Any = None):
+        self.status = status
+        self.message = message
+        self.data = data
+
 # API endpoint to list available modules
-@app.route('/api/modules', methods=['GET'])
-def list_modules():
+@app.get("/api/modules")
+async def list_modules() -> Dict[str, Any]:
     """Return list of registered hardware modules"""
-    return jsonify({
+    return {
         "status": "success",
         "data": {
             "modules": registered_modules,
             "count": len(registered_modules)
         }
-    })
+    }
 
 # Health check endpoint
-@app.route('/api/health', methods=['GET'])
-def health_check():
+@app.get("/api/health")
+async def health_check() -> Dict[str, Any]:
     """Health check endpoint"""
-    return jsonify({
+    return {
         "status": "success",
         "message": "IR Spectroscopy Control Interface API is running",
         "modules_loaded": len(registered_modules)
-    })
+    }
 
 # System information endpoint
-@app.route('/api/system/info', methods=['GET'])
-def system_info():
+@app.get("/api/system/info")
+async def system_info() -> Dict[str, Any]:
     """Return system information"""
-    return jsonify({
+    return {
         "status": "success",
         "data": {
             "application": "IR Pump-Probe Spectroscopy Control Interface",
@@ -109,57 +134,89 @@ def system_info():
             "modules": registered_modules,
             "api_base": "/api"
         }
+    }
+
+# Mount static files for frontend (for production deployment)
+static_folder_path = os.path.join(os.path.dirname(__file__), 'static')
+if os.path.exists(static_folder_path):
+    app.mount("/static", StaticFiles(directory=static_folder_path), name="static")
+
+# Serve frontend files
+@app.get("/{full_path:path}")
+async def serve_frontend(full_path: str):
+    """Serve frontend files from static directory"""
+    if not os.path.exists(static_folder_path):
+        return JSONResponse({
+            "status": "info",
+            "message": "IR Spectroscopy Control Interface API",
+            "frontend": "Not deployed",
+            "api_endpoints": [
+                "/api/health",
+                "/api/modules",
+                "/api/system/info",
+                "/api/docs"
+            ],
+            "modules": registered_modules
+        })
+
+    # Try to serve the requested file
+    file_path = os.path.join(static_folder_path, full_path)
+    if full_path and os.path.exists(file_path) and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    
+    # Serve index.html for SPA routing
+    index_path = os.path.join(static_folder_path, 'index.html')
+    if os.path.exists(index_path):
+        return FileResponse(index_path)
+    
+    # Return API info if no frontend is deployed
+    return JSONResponse({
+        "status": "info",
+        "message": "IR Spectroscopy Control Interface API",
+        "frontend": "Not deployed",
+        "api_endpoints": [
+            "/api/health",
+            "/api/modules",
+            "/api/system/info",
+            "/api/docs"
+        ],
+        "modules": registered_modules
     })
 
-# Serve frontend files (for production deployment)
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve_frontend(path):
-    """Serve frontend files from static directory"""
-    static_folder_path = app.static_folder
-    if static_folder_path is None:
-        return jsonify({
+# Exception handlers
+@app.exception_handler(404)
+async def not_found_handler(request, exc):
+    return JSONResponse(
+        status_code=404,
+        content={
             "status": "error",
-            "message": "Static folder not configured"
-        }), 404
+            "message": "Endpoint not found"
+        }
+    )
 
-    if path != "" and os.path.exists(os.path.join(static_folder_path, path)):
-        return send_from_directory(static_folder_path, path)
-    else:
-        index_path = os.path.join(static_folder_path, 'index.html')
-        if os.path.exists(index_path):
-            return send_from_directory(static_folder_path, 'index.html')
-        else:
-            # Return API info if no frontend is deployed
-            return jsonify({
-                "status": "info",
-                "message": "IR Spectroscopy Control Interface API",
-                "frontend": "Not deployed",
-                "api_endpoints": [
-                    "/api/health",
-                    "/api/modules",
-                    "/api/system/info"
-                ],
-                "modules": registered_modules
-            })
+@app.exception_handler(500)
+async def internal_error_handler(request, exc):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "message": "Internal server error"
+        }
+    )
 
-# Error handlers
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({
-        "status": "error",
-        "message": "Endpoint not found"
-    }), 404
-
-@app.errorhandler(500)
-def internal_error(error):
-    return jsonify({
-        "status": "error",
-        "message": "Internal server error"
-    }), 500
-
-if __name__ == '__main__':
+# Startup event
+@app.on_event("startup")
+async def startup_event():
     logger.info("Starting IR Spectroscopy Control Interface")
     logger.info(f"Registered modules: {registered_modules}")
-    app.run(host='0.0.0.0', port=5000, debug=True)
+
+if __name__ == '__main__':
+    logger.info("Starting IR Spectroscopy Control Interface with uvicorn")
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=True,
+        log_level="info"
+    )
 

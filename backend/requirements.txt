@@ -1,14 +1,12 @@
-blinker==1.9.0
+# FastAPI and web server dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic==2.5.0
+python-multipart==0.0.6
+
+# Core dependencies
 click==8.2.1
-Flask==3.1.1
-flask-cors==6.0.0
-Flask-SQLAlchemy==3.1.1
-itsdangerous==2.2.0
-Jinja2==3.1.6
-MarkupSafe==3.0.2
-SQLAlchemy==2.0.41
 typing_extensions==4.14.0
-Werkzeug==3.1.3
 
 # Hardware communication dependencies
 pyserial==3.5
@@ -18,4 +16,11 @@ toml==0.10.2
 # pyvisa==1.14.1  # For SCPI/VISA instrument communication
 # numpy==1.24.3   # For data processing
 # scipy==1.10.1   # For signal processing
+# zhinst==22.8.0  # Zurich Instruments LabOne API
+# picosdk==1.0.0  # PicoScope SDK (if available via pip)
+
+# Development and testing dependencies (optional)
+# pytest==7.4.3
+# pytest-asyncio==0.21.1
+# httpx==0.25.2  # For testing FastAPI endpoints
 
