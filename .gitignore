@@ -211,11 +211,6 @@ docs/sdks/**/*.msi
 docs/sdks/**/*.dmg
 docs/sdks/**/*.pkg
 
-# Large documentation files
-docs/manuals/**/*.pdf
-docs/manuals/**/*.doc
-docs/manuals/**/*.docx
-
 # Hardware configuration with sensitive data
 hardware_configuration_local.toml
 hardware_configuration_production.toml
@@ -255,13 +250,6 @@ $RECYCLE.BIN/
 *.msm
 *.msp
 *.lnk
-
-# Linux
-*~
-.fuse_hidden*
-.directory
-.Trash-*
-.nfs*
 
 # ===== IDE & EDITOR FILES =====
 
