@@ -1,0 +1,132 @@
+# Hardware Configuration for IR Pump-Probe Spectroscopy System
+# This file contains connection parameters and settings for all hardware components
+# Edit the values below to match your specific hardware setup
+
+[arduino_uno_r4]
+# Arduino Uno R4 Minima - MUX controller for sample positioning
+device_type = "Arduino Uno R4 Minima"
+connection_type = "USB"
+port = "COM3"  # Windows example - change to /dev/ttyUSB0 for Linux, /dev/cu.usbmodem* for macOS
+baud_rate = 115200
+timeout = 2.0
+description = "MUX controller for sample positioning"
+
+[arduino_uno_r4.parameters]
+digital_pins = 14
+analog_pins = 6
+analog_resolution = 14  # bits
+clock_speed = 48000000  # Hz
+memory_ram = 32768  # bytes
+memory_flash = 262144  # bytes
+memory_eeprom = 8192  # bytes
+
+[continuum_ndyag]
+# Continuum Nd:YAG Laser (Surelite) - Pump source
+device_type = "Continuum Surelite Nd:YAG Laser"
+connection_type = "TTL"  # Controlled via Signal Generator TTL signals
+direct_pc_connection = false
+description = "Pump laser source - controlled via Quantum Composers signal generator"
+
+[continuum_ndyag.parameters]
+laser_type = "Q-switched Nd:YAG"
+wavelength = 1064  # nm (fundamental)
+# Note: Actual control parameters depend on specific model
+# USER ACTION REQUIRED: Specify your laser model and available control parameters
+
+[daylight_mircat]
+# Daylight MIRcat Laser - Probe source
+device_type = "Daylight MIRcat"
+connection_type = "USB"
+port = "USB_DEVICE_PATH"  # USER ACTION REQUIRED: Specify actual USB device path
+sdk_path = "PATH_TO_MIRCAT_SDK"  # USER ACTION REQUIRED: Specify SDK installation path
+description = "Mid-IR tunable probe laser"
+
+[daylight_mircat.parameters]
+tuning_range_min = 6.0  # μm
+tuning_range_max = 13.0  # μm
+wavenumber_range = 1000  # cm⁻¹
+tuning_speed = 1000  # cm⁻¹/s
+# USER ACTION REQUIRED: Verify these parameters match your specific MIRcat model
+
+[daylight_mircat.control_parameters]
+wavelength_setpoint = true
+scan_control = true
+power_control = true
+triggering = true
+pulse_width = true
+duty_cycle = true
+
+[picoscope_5244d]
+# PicoScope 5244D - Oscilloscope for alignment, calibration, and data collection
+device_type = "PicoScope 5244D"
+connection_type = "USB3"
+sdk_path = "PATH_TO_PICOSDK"  # USER ACTION REQUIRED: Specify PicoSDK installation path
+description = "4-channel 200 MHz oscilloscope"
+
+[picoscope_5244d.parameters]
+channels = 4
+bandwidth = 200000000  # Hz (200 MHz)
+max_sampling_rate = 1000000000  # Hz (1 GS/s)
+memory_depth = 128000000  # samples (128 MS)
+resolution_bits = 12
+input_ranges = [0.02, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0]  # V
+
+[picoscope_5244d.api_settings]
+supported_languages = ["Python", "C", "C++", "C#", "MATLAB", "LabVIEW"]
+driver_type = "Direct API"  # Not SCPI
+async_callbacks = true
+
+[quantum_composers_9524]
+# Quantum Composers 9524 - Signal Generator for system synchronization
+device_type = "Quantum Composers 9524"
+connection_type = "USB"
+port = "COM4"  # Windows example - USER ACTION REQUIRED: Specify actual port
+baud_rate = 115200
+timeout = 2.0
+description = "Digital delay pulse generator for system synchronization"
+
+[quantum_composers_9524.parameters]
+channels = 8
+max_frequency = 100000000  # Hz (100 MHz)
+min_pulse_width = 10e-9  # seconds (10 ns)
+max_pulse_width = 1000  # seconds
+delay_resolution = 1e-9  # seconds (1 ns)
+amplitude_range = [0.0, 5.0]  # V
+
+[quantum_composers_9524.interfaces]
+usb = true
+rs232 = true
+gpib = false  # Optional module
+ethernet = false  # Optional module
+
+[zurich_hf2li]
+# Zurich HF2LI - Lock-in Amplifier for data collection
+device_type = "Zurich HF2LI"
+connection_type = "USB"
+device_id = "DEVICE_SERIAL"  # USER ACTION REQUIRED: Specify device serial number
+labone_path = "PATH_TO_LABONE"  # USER ACTION REQUIRED: Specify LabOne installation path
+description = "50 MHz digital lock-in amplifier"
+
+[zurich_hf2li.parameters]
+frequency_range_min = 0  # Hz (DC)
+frequency_range_max = 50000000  # Hz (50 MHz)
+input_channels = 2
+demodulators = 6
+differential_inputs = true
+
+[zurich_hf2li.api_settings]
+supported_languages = ["Python", "MATLAB", "LabVIEW", ".NET", "C", "C++"]
+labone_version = "LATEST"  # USER ACTION REQUIRED: Specify required LabOne version
+web_interface = true
+
+# System-wide settings
+[system]
+data_directory = "PATH_TO_DATA_STORAGE"  # USER ACTION REQUIRED: Specify data storage path
+log_level = "INFO"
+experiment_timeout = 3600  # seconds (1 hour default)
+
+[system.synchronization]
+master_clock = "quantum_composers_9524"  # Primary timing source
+trigger_mode = "external"
+repetition_rate = 1000  # Hz (1 kHz default)
+
