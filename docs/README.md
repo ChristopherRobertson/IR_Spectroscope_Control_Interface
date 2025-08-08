@@ -1,69 +1,125 @@
 # Documentation Directory
 
-This directory contains all hardware documentation, SDKs, and reference materials for the IR Pump-Probe Spectroscopy System.
+This directory contains all hardware documentation, software development kits, reference materials, and examples for the IR Pump-Probe Spectroscopy Control Interface project.
 
 ## Directory Structure
 
-### `/manuals/`
-Place all hardware manuals and user guides here:
-- Arduino Uno R4 Minima documentation
-- Continuum Surelite Nd:YAG laser manual
-- Daylight MIRcat laser documentation
-- PicoScope 5244D user manual
-- Quantum Composers 9524 manual
-- Zurich HF2LI lock-in amplifier documentation
+```
+docs/
+├── README.md                           # This file
+├── manuals/                           # Hardware manuals and user guides
+│   ├── arduino_uno_r4/               # Arduino Uno R4 Minima documentation
+│   │   └── ABX00080-datasheet.pdf    # Official Arduino datasheet
+│   ├── continuum_surelite/           # Continuum Nd:YAG laser documentation
+│   │   └── SureliteNdYAGLaserManual.pdf # Complete user manual
+│   ├── daylight_mircat/              # Daylight MIRcat laser documentation
+│   │   ├── DaylightSolutionsMIRcatManual.pdf # User manual
+│   │   ├── MIRcatSDKGuide.pdf        # SDK programming guide
+│   │   └── DRS_DLS_MIRCAT-DATA-SHEET_REV-12.pdf # Technical datasheet
+│   ├── picoscope_5244d/              # PicoScope 5244D documentation
+│   │   ├── PicoScope_7_User_s_Guide_psw7.en.pdf # PicoScope 7 software guide
+│   │   ├── picoscope-5000d-series-data-sheet.pdf # Hardware specifications
+│   │   └── picoscope-5000d-series-users-guide.pdf # User guide
+│   ├── quantum_composers_9524/       # Quantum Composers signal generator docs
+│   │   ├── 9520Datasheet.pdf         # Hardware datasheet
+│   │   ├── DelayGeneratorMultiplexing-QuantumComposers.pdf
+│   │   ├── DelayGeneratorSystemandChannelModes-QuantumComposers.pdf
+│   │   ├── ProgrammingthePulseGeneratorwiththeCommTerminal-QuantumComposers.pdf
+│   │   └── QuantumComposers9520SignalGeneratorOperatorsManual.pdf
+│   └── zurich_hf2li/                 # Zurich Instruments lock-in amplifier docs
+│       └── ziHF2_UserManual.pdf      # Complete user manual
+│
+├── sdks/                             # Software development kits and APIs
+│   ├── arduino/                      # Arduino development resources
+│   ├── daylight_mircat/              # MIRcat SDK files
+│   │   ├── Main.py                   # Example Python implementation
+│   │   ├── MIRcatSDKConstants.py     # SDK constants
+│   │   ├── MIRcatSDKHelpers.py       # Helper functions
+│   │   ├── MIRcatSDK.dll             # Windows SDK library
+│   │   ├── QtCore4.dll               # Qt dependency
+│   │   └── QtGui4.dll                # Qt GUI dependency
+│   ├── picoscope/                    # PicoScope SDK and programming guides
+│   │   ├── picoscope-5000-series-a-api-programmers-guide.pdf
+│   │   ├── picosdk-advanced-triggers.pdf
+│   │   └── TriggeringAPicoScopeSignalGeneratorUsingThePicoScopeAPIFunctions.pdf
+│   └── zurich_instruments/           # Zurich Instruments SDK resources
+│
+├── references/                       # Reference materials and external resources
+│   └── GITHUB_REPOSITORIES.md       # Essential GitHub repositories for development
+│
+├── wiring_diagrams/                  # System wiring and connection diagrams
+│   └── WiringDiagram.jpg            # Complete system wiring diagram
+│
+├── examples/                         # Example code and configurations
+└── specifications/                   # Technical specifications and requirements
+```
 
-### `/sdks/`
-Place all software development kits and drivers here:
-- PicoSDK (for PicoScope control)
-- Daylight MIRcat SDK
-- Zurich LabOne software and APIs
-- Arduino IDE and libraries
-- Quantum Composers programming libraries
+## Hardware Documentation Status
 
-### `/examples/`
-Place example code and configuration files here:
-- Device control examples
-- Communication protocol examples
-- Configuration file templates
-- Test scripts
+### ✅ Complete Documentation
+- **Arduino Uno R4 Minima**: Official datasheet available
+- **Continuum Nd:YAG Laser**: Complete user manual with TTL specifications
+- **Daylight MIRcat Laser**: User manual, SDK guide, and datasheet
+- **PicoScope 5244D**: Complete documentation set with API guides
+- **Quantum Composers 9524**: Full documentation including programming guides
+- **Zurich HF2LI**: Complete user manual
 
-### `/specifications/`
-Place technical specifications and datasheets here:
-- Device specifications
-- Communication protocol specifications
-- Electrical interface specifications
-- Performance characteristics
+### 📋 Available SDKs
+- **MIRcat**: Complete Python SDK with DLL libraries
+- **PicoScope**: API programming guides and trigger documentation
+- **Zurich Instruments**: Reference to official GitHub repositories
 
-## Required Documentation (ACTION REQUIRED)
+## Key Reference Materials
 
-The following documentation needs to be obtained and placed in the appropriate directories:
+### System Wiring
+- **WiringDiagram.jpg**: Complete system interconnection diagram showing:
+  - USB connections from all devices to computer
+  - TTL signal routing from Signal Generator to Nd:YAG laser
+  - Lock-in amplifier and oscilloscope input connections
+  - Arduino switch connections for sample positioning
 
-### Critical Missing Documentation:
-1. **Continuum Surelite Nd:YAG Laser Manual** - Required for TTL control specifications
-2. **Daylight MIRcat SDK and Documentation** - Required for laser control implementation
-3. **PicoScope 5244D Programming Manual** - Required for oscilloscope integration
-4. **Quantum Composers 9524 Programming Guide** - Required for signal generator control
-5. **Zurich HF2LI LabOne Programming Manual** - Required for lock-in amplifier integration
-6. **Arduino Uno R4 Minima Programming Reference** - Required for MUX controller implementation
+### GitHub Repositories
+Essential repositories for development (see `references/GITHUB_REPOSITORIES.md`):
+- **PicoScope**: `picotech/picosdk-python-wrappers`
+- **Zurich Instruments**: Multiple repositories including `zhinst-toolkit`, `labone-api-examples`
 
-### Where to Find Documentation:
-- **PicoScope**: Download PicoSDK from https://www.picotech.com/downloads
-- **Zurich Instruments**: Download LabOne from https://www.zhinst.com/downloads
-- **Daylight Solutions**: Contact vendor for MIRcat SDK
-- **Quantum Composers**: Download from vendor website or contact support
-- **Continuum**: Contact vendor for Surelite documentation
-- **Arduino**: Available at https://docs.arduino.cc/
+## Development Guidelines
 
-### Installation Requirements:
-After obtaining the documentation and SDKs, update the paths in `hardware_configuration.toml`:
-- `picoscope_5244d.sdk_path`
-- `daylight_mircat.sdk_path`
-- `zurich_hf2li.labone_path`
+### Using This Documentation
+
+1. **Hardware Setup**: Consult device manuals in `manuals/` for physical setup
+2. **Programming**: Use SDK documentation in `sdks/` for software integration
+3. **Wiring**: Reference `wiring_diagrams/` for system connections
+4. **Examples**: Check GitHub repositories listed in `references/` for code examples
+
+### Documentation Standards
+
+- **Manuals**: Original vendor documentation in PDF format
+- **SDKs**: Programming guides, API references, and example code
+- **References**: Links to external resources and repositories
+- **Examples**: Working code examples and configuration templates
+
+### Missing Information
+
+All critical hardware documentation has been provided. The following items are ready for Phase 1 development:
+
+- ✅ Hardware connection specifications
+- ✅ Programming interfaces and APIs
+- ✅ System wiring diagrams
+- ✅ SDK libraries and examples
+- ✅ Reference implementations
 
 ## Next Steps
-1. Obtain all required documentation and SDKs
-2. Update hardware_configuration.toml with correct paths and device-specific parameters
-3. Test hardware connections and verify communication protocols
-4. Proceed with Phase 1 GUI development
+
+1. **Review Documentation**: Study the relevant manuals for each device
+2. **Examine SDKs**: Understand the programming interfaces available
+3. **Study Wiring**: Understand the system interconnections
+4. **Reference Examples**: Use GitHub repositories for implementation patterns
+5. **Begin Development**: Start Phase 1 hardware module implementation
+
+---
+
+**Documentation Status**: ✅ Complete  
+**Last Updated**: August 2025  
+**Ready for**: Phase 1 Development
 
