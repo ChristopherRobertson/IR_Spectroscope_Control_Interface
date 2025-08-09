@@ -17,6 +17,9 @@ interface ArduinoStatus {
   port?: string;
   firmware_version?: string;
   last_heartbeat?: string;
+  mux_position?: number;
+  switch_states?: boolean[];
+  last_update?: string;
 }
 
 interface MuxPosition {
@@ -44,7 +47,7 @@ interface RequestOptions extends RequestInit {
 const apiRequest = async <T = any>(
   endpoint: string, 
   options: RequestOptions = {}
-): Promise<ApiResponse<T>> => {
+): Promise<T> => {
   const url = `${API_BASE}${endpoint}`;
   const defaultOptions: RequestOptions = {
     headers: {
@@ -54,12 +57,12 @@ const apiRequest = async <T = any>(
 
   try {
     const response = await fetch(url, { ...defaultOptions, ...options });
-    const data: ApiResponse<T> = await response.json();
     
     if (!response.ok) {
-      throw new Error(data.message || `HTTP error! status: ${response.status}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
     
+    const data = await response.json();
     return data;
   } catch (error) {
     console.error(`API request failed for ${url}:`, error);
@@ -68,78 +71,84 @@ const apiRequest = async <T = any>(
 };
 
 /**
- * Connect to Arduino device
- * @returns Connection response
+ * Arduino API object with all methods
  */
-export const connect = async (): Promise<ApiResponse<ArduinoStatus>> => {
-  return apiRequest<ArduinoStatus>('/connect', {
-    method: 'POST',
-  });
-};
+export const arduinoApi = {
+  /**
+   * Connect to Arduino device
+   */
+  connect: async (): Promise<ArduinoStatus> => {
+    return apiRequest<ArduinoStatus>('/connect', {
+      method: 'POST',
+    });
+  },
 
-/**
- * Disconnect from Arduino device
- * @returns Disconnection response
- */
-export const disconnect = async (): Promise<ApiResponse<ArduinoStatus>> => {
-  return apiRequest<ArduinoStatus>('/disconnect', {
-    method: 'POST',
-  });
-};
+  /**
+   * Disconnect from Arduino device
+   */
+  disconnect: async (): Promise<ArduinoStatus> => {
+    return apiRequest<ArduinoStatus>('/disconnect', {
+      method: 'POST',
+    });
+  },
 
-/**
- * Get Arduino device status
- * @returns Status response
- */
-export const getStatus = async (): Promise<ApiResponse<ArduinoStatus>> => {
-  return apiRequest<ArduinoStatus>('/status', {
-    method: 'GET',
-  });
-};
+  /**
+   * Get Arduino device status
+   */
+  getStatus: async (): Promise<ArduinoStatus> => {
+    return apiRequest<ArduinoStatus>('/status', {
+      method: 'GET',
+    });
+  },
 
-/**
- * Get current MUX position
- * @returns Position response
- */
-export const getMuxPosition = async (): Promise<ApiResponse<MuxPosition>> => {
-  return apiRequest<MuxPosition>('/mux/position', {
-    method: 'GET',
-  });
-};
+  /**
+   * Get current MUX position
+   */
+  getMuxPosition: async (): Promise<MuxPosition> => {
+    return apiRequest<MuxPosition>('/mux/position', {
+      method: 'GET',
+    });
+  },
 
-/**
- * Set MUX position
- * @param position - Target position
- * @returns Set position response
- */
-export const setMuxPosition = async (position: number): Promise<ApiResponse<MuxPosition>> => {
-  return apiRequest<MuxPosition>('/mux/position', {
-    method: 'POST',
-    body: JSON.stringify({ position }),
-  });
-};
+  /**
+   * Set MUX position
+   */
+  setMuxPosition: async (position: number): Promise<MuxPosition> => {
+    return apiRequest<MuxPosition>('/mux/position', {
+      method: 'POST',
+      body: JSON.stringify({ position }),
+    });
+  },
 
-/**
- * Get available MUX positions
- * @returns Available positions response
- */
-export const getAvailablePositions = async (): Promise<ApiResponse<AvailablePositions>> => {
-  return apiRequest<AvailablePositions>('/mux/positions', {
-    method: 'GET',
-  });
-};
+  /**
+   * Toggle a digital switch
+   */
+  toggleSwitch: async (switchIndex: number): Promise<ArduinoStatus> => {
+    return apiRequest<ArduinoStatus>(`/switch/${switchIndex}/toggle`, {
+      method: 'POST',
+    });
+  },
 
-/**
- * Test Arduino connection
- * @returns Connection test result
- */
-export const testConnection = async (): Promise<boolean> => {
-  try {
-    const response = await getStatus();
-    return response.status === 'success' && response.data?.connected === true;
-  } catch (error) {
-    return false;
-  }
+  /**
+   * Get available MUX positions
+   */
+  getAvailablePositions: async (): Promise<AvailablePositions> => {
+    return apiRequest<AvailablePositions>('/mux/positions', {
+      method: 'GET',
+    });
+  },
+
+  /**
+   * Test Arduino connection
+   */
+  testConnection: async (): Promise<boolean> => {
+    try {
+      const response = await arduinoApi.getStatus();
+      return response.connected === true;
+    } catch (error) {
+      return false;
+    }
+  },
 };
 
 /**
@@ -148,17 +157,13 @@ export const testConnection = async (): Promise<boolean> => {
 export const utils = {
   /**
    * Validate position value
-   * @param position - Position to validate
-   * @returns Is valid position
    */
   isValidPosition: (position: number): boolean => {
-    return Number.isInteger(position) && position >= 1 && position <= 8;
+    return Number.isInteger(position) && position >= 0 && position <= 7;
   },
 
   /**
    * Format position for display
-   * @param position - Position number
-   * @returns Formatted position
    */
   formatPosition: (position: number | null): string => {
     return position !== null ? `Position ${position}` : 'Unknown';
@@ -166,11 +171,9 @@ export const utils = {
 
   /**
    * Get connection status color
-   * @param connected - Connection status
-   * @returns Status color class
    */
   getStatusColor: (connected: boolean): string => {
-    return connected ? 'text-green-600' : 'text-red-600';
+    return connected ? 'success' : 'error';
   },
 };
 

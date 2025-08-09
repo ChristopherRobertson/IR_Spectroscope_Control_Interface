@@ -317,3 +317,123 @@ This is the most granular level of documentation, intended for someone reading t
 **Version**: 1.0  
 **Status**: Phase 0 Complete
 
+
+
+## Phase 1: GUI Development
+
+**Core Objective**: To iteratively develop a dedicated, functional, and aesthetically pleasing UI control panel for each of the 6 hardware devices.
+
+### Part A: Global GUI Design & Functionality Standards
+
+Before developing any individual device panel, it is critical to define the global standards that apply to the entire user interface. Every component built in Phase 1 must adhere to these principles to ensure a cohesive, intuitive, and professional application.
+
+#### Aesthetics & Layout
+
+**Theme**: The application will feature a Dark Mode theme as its primary and default look. The color palette should consist of dark gray backgrounds (e.g., #1e1e1e), slightly lighter container backgrounds (e.g., #2a2a2a), high-contrast text (off-white or light gray), and a primary accent color (e.g., a vibrant blue or cyan) for interactive elements.
+
+**Rich Formatting**: We will move beyond plain HTML elements. The UI will be built using a professional component library (MUI) to provide a rich, modern feel. This includes the use of cards, elevation/shadows, smooth transitions, and high-quality icons (e.g., from Material Icons).
+
+**Typography**: A clean, sans-serif font will be used throughout the application for readability. A clear typographic hierarchy (e.g., distinct sizes for titles, subtitles, and body text) will be established to guide the user's eye.
+
+**Layout & Navigation**: A persistent Navigation Bar will be present at the top of the screen. It will contain links to switch between the "Home/Dashboard" view, each individual device control panel, and the "Experiment" view (which will be built in Phase 2).
+
+A persistent Status Bar will be present at the bottom of the screen. This bar will display global system status, such as the connection state of the backend server and any global error messages.
+
+#### Component Behavior & User Experience (UX)
+
+This section defines how interactive elements must behave to provide a clear and responsive experience.
+
+**Button Interaction Feedback**:
+- **Pressed State**: All buttons must visually change when clicked (e.g., stay depressed, change color/shade)
+- **In-Progress State**: For any action that is not instantaneous (i.e., any action that involves a backend call), the button must enter a disabled, "in-progress" state immediately upon being clicked. This state should be indicated by a loading spinner within the button and/or by changing the button text (e.g., from "Connect" to "Connecting..."). This prevents the user from clicking the button multiple times
+- **Action Completion State**: Upon completion, the user must be notified of the outcome and the button should either return to its original state or display its current state (e.g., if Arm Laser is pressed and is successful it should display 'Disarm Laser' and be in the unpressed state, if failed it should return to its original state)
+  - **Success**: A temporary, non-intrusive "toast" notification should appear (e.g., "Successfully connected to MIRcat Laser")
+  - **Failure**: A more prominent toast notification should appear with a red color and a clear error message (e.g., "Error: Connection to MIRcat Laser failed")
+
+**Validated Input Fields**:
+- **Live Input**: The user must be able to freely type any value into an input box, including deleting the current content
+- **Validation on Blur**: The input value should only be validated when the user "clicks out" of the input box (the "on blur" event)
+- **Auto-Correction**: If the entered value is outside the acceptable min/max range, the input should automatically revert to the nearest valid value (e.g., if the max is 100 and the user enters 150, it reverts to 100 upon blur)
+- **Visual Cues**: The valid range for the input (e.g., "10-100 nm") should be displayed as helper text directly below the input box so the user knows the limits beforehand
+
+**Real-Time State Reflection**:
+- All UI elements must accurately represent the current, true state of the hardware
+- If a connection to a device is lost, its corresponding UI panel should be overlaid with a "Disconnected" message or have its controls disabled, with a clear visual indicator in the navigation or status bar
+- Status indicators (e.g., "Armed," "Connected," "Idle") should be updated via websocket
+
+### Part B: UI Skeleton and Component Scaffolding
+
+**Core Objective**: To build the static, non-functional "shell" of the React application. This involves creating the main layout, navigation, status bar, and placeholder panels for each device. This will allow for early testing of the application's structure and aesthetics before any backend logic is implemented.
+
+#### Agent Instructions:
+
+**Step 0: Centralized Theme and State Provider Setup**
+
+**Goal**: To configure the foundational providers for theming (MUI) and global state management at the root of the application.
+
+**Agent Instructions**:
+- **MUI Theme Provider**: Create a theme.ts file that defines our dark mode palette (colors, typography) as specified in Part A. In the main App.tsx or main.tsx file, wrap the entire application with MUI's ThemeProvider and pass our custom theme to it. This ensures all MUI components automatically inherit the correct dark mode styles
+- **Global State/Context Provider (for Status Bar)**: Create a simple React Context (e.g., AppContext) that will manage global state, such as the backend connection status and any global error messages. Wrap the application in this context provider. This will allow the Statusbar component to easily access and display this information later without complex prop drilling
+
+**Step 1: Setup Main Application Layout**
+
+- **Central Layout Component**: In the `/frontend/src/components/global/` directory, create a MainLayout.tsx component. This component will define the overall page structure. It will render:
+  - The Navbar component at the top
+  - A main content area in the middle where the selected device panel will be displayed
+  - The Statusbar component at the bottom
+- **Integrate Layout**: Modify the root App.tsx file to use this MainLayout as the primary container for the application, wrapping the React Router's Outlet or children
+
+**Step 2: Implement Navigation and Status Bars**
+
+**Navigation Bar (Navbar.tsx)**:
+- Create the Navbar component in `/frontend/src/components/global/`
+- Using MUI components (AppBar, Toolbar, Button), create a static navigation bar
+- It must contain navigation links for "Dashboard" and each of the hardware devices (e.g., "MIRcat", "PicoScope", etc.). For now, these links will point to placeholder routes
+- **Icons**: Each navigation link should be accompanied by a relevant icon from the Material Icons library to improve visual recognition
+- **Active Link Styling**: The link corresponding to the currently active page must be visually distinct (e.g., have a different background color or a brighter text color) to provide clear feedback to the user about their location in the app. React Router's NavLink component should be used to achieve this
+- Apply the dark-mode aesthetic defined in Part A
+
+**Status Bar (Statusbar.tsx)**:
+- Create the Statusbar component in `/frontend/src/components/global/`
+- Design a simple bar that docks to the bottom of the screen
+- Add placeholder text elements for future use, such as:
+  - A "Backend Status" indicator (e.g., a green dot with text "Connected")
+  - A space for global notifications
+
+**Step 3: Create Placeholder Device Panels**
+
+**Generate Module Files**: 
+- For each of the hardware devices, create its corresponding module directory and files within `/frontend/src/modules/`. For example, for the MIRcat laser:
+  - Create `/frontend/src/modules/MIRcat/`
+  - Inside, create a placeholder MIRcatView.tsx component
+
+**Design Placeholder Panels**: Each ...View.tsx component should be a simple placeholder panel. It should consist of:
+- An MUI Card or Paper component to act as a container
+- A main title using an MUI Typography component (e.g., "<h1>MIRcat Laser Control Panel</h1>")
+- A brief placeholder text, such as: "Controls for this device will be implemented here."
+
+**Design Dashboard Panel**: Create a DashboardView.tsx component. This will be the main landing page. For now, it should contain:
+- A Title message
+- A grid or list of "status cards," one for each of the hardware devices
+- Each status card should be a placeholder showing the device name and a placeholder "Status: Disconnected" message. This will eventually become a live overview of the entire system's health
+
+**Step 4: Setup Routing**
+
+**Configure Router**:
+- In the main App.tsx or a dedicated router file, configure React Router
+- **Define Routes**:
+  - Create a route for each navigation link
+  - `/` should map to a placeholder DashboardView.tsx component
+  - `/mircat` should map to the MIRcatView.tsx component
+  - `/picoscope` should map to the PicoScopeView.tsx component
+  - ...and so on for all devices
+
+**Step 5: Finalization and Testing**
+
+**Commit to Repository**: Once the entire UI skeleton is in place, commit the changes to GitHub with a clear message, such as: "feat(frontend): Built static UI skeleton with navigation and placeholder panels."
+
+**User Testing**: At this point, the frontend application should be fully runnable (npm start). The user should be able to:
+- See the complete application layout with the dark theme
+- Click on the navigation links to switch between the different (empty) device panels
+- Verify that the overall look and feel meets the aesthetic goals before starting to adding functionality
+
