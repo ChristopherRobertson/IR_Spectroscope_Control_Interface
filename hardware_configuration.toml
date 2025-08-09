@@ -21,7 +21,7 @@ sync_timeout = 5.0  # seconds
 [arduino_uno_r4]
 device_type = "Arduino Uno R4 Minima"
 connection_type = "USB"
-port = "COM3"  # Windows: COM3, Linux: /dev/ttyUSB0, macOS: /dev/cu.usbmodem*
+port = "UNKNOWN"  # Windows: COM3, Linux: /dev/ttyUSB0, macOS: /dev/cu.usbmodem*
 baud_rate = 115200
 timeout = 2.0
 description = "MUX controller for sample positioning"
@@ -48,9 +48,9 @@ description = "Pump laser controlled via TTL signals from Signal Generator"
 
 [continuum_ndyag.parameters]
 # Laser specifications from manual
-wavelength = 1064  # nm (fundamental)
-pulse_energy_max = 850  # mJ at 1064nm
-pulse_width = 4  # ns FWHM
+wavelength = 532  # nm (fundamental)
+pulse_energy_max = 121  # mJ at 1064nm
+pulse_width = 6  # ns FWHM
 repetition_rate_max = 10  # Hz
 beam_diameter = 9  # mm
 
@@ -76,16 +76,16 @@ key_switch_required = true
 device_type = "Daylight MIRcat QCL"
 connection_type = "USB"
 port = "AUTO"  # Auto-detect USB device
-sdk_path = "C:/Program Files/Daylight Solutions/MIRcat SDK"  # Windows default
+sdk_path ="C:\\Users\\Chris\\Documents\\GitHub\\IR_Spectroscope_Control_Interface\\backend\\src\\modules\\daylight_mircat\\sdk"  # Windows default
 description = "Mid-IR tunable probe laser"
 
 [daylight_mircat.parameters]
 # Laser specifications from datasheet
-wavelength_min = 5.5  # microns
-wavelength_max = 12.0  # microns
-wavelength_resolution = 0.001  # microns
-num_qcls = 4  # Number of QCL modules
-default_wavelength = 8.0  # microns
+wavelength_min = 2075  # Wavenumbners
+wavelength_max = 1645  # Wavenumbers
+wavelength_resolution = 0.01  # Wavenumbers
+num_qcls = 1  # Number of QCL modules
+default_wavelength = 1950  # wavenumbers
 
 [daylight_mircat.communication]
 # SDK communication parameters
