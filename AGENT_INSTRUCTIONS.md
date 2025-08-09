@@ -23,7 +23,7 @@
 
 **Note**: All devices are connected to the host computer via USB with the exception of the Nd:YAG laser, which is not connected to the computer at all and is directly controlled through the TTL signals sent from the Signal Generator.
 
-## Development Phases
+## Agent Instruction Guide & Development Phases
 
 ### Phase 0: Project Structure
 
@@ -31,11 +31,11 @@
 
 **Goal**: Establish a solid foundation for the project by analyzing existing documentation and setting up the development environment and project structure.
 
-**Method**: Perform a comprehensive analysis of the provided documentation. From there create a professional project skeleton, and generate a targeted "To-Do List" for the user in the form of an ACTION_REQUIRED.md file. This list will outline the final pieces of information required to begin building the manual control GUI in the next phase.
+**Method**: You are to perform a comprehensive analysis of the provided documentation. From there you need to create a professional project skeleton, and generate a targeted "To-Do List" for the user in the form of an ACTION_REQUIRED.md file. This list will outline the final pieces of information required to begin building the manual control GUI in the next phase.
 
 **Agent Instructions**:
 1. **Access Repository**: Clone the GitHub repository using the URL and Access Token stored in the Knowledge Base
-2. **Analyze Documentation**: Perform a thorough review of all files within the /docs directory and all its subdirectories. For each document (PDF, text file, code example, etc.), determine its purpose and extract key information relevant to controlling the associated hardware device, including but not limited to:
+2. **Analyze Documentation**: Perform a thorough review of all files within the /docs directory and all its subdirectories. For each document (PDF, text file, code example, etc.), you must determine its purpose and extract key information relevant to controlling the associated hardware device, including but not limited to:
    - Communication protocols (e.g., SCPI commands, proprietary APIs)
    - Connection parameters (e.g., default baud rates, required libraries)
    - Required drivers or SDKs
@@ -258,14 +258,58 @@ The entire project will be contained within a single Git repository. The root di
 #### Layer 1: The "10,000-Foot View" - README.md
 This is the first file a new developer will see. Its purpose is to quickly answer: "What is this project, and how do I get it running?"
 
+- **Project Purpose**: A clear, concise summary of what the application does (e.g., "A unified control interface for an IR Pump-Probe Spectroscopy system...")
+- **Technology Stack**: A quick list of the major technologies used (Python/FastAPI, React, etc.)
+- **Getting Started Guide**:
+  - Prerequisites: What needs to be installed on their machine (Python 3.x, Node.js, Git)
+  - Installation: Simple, copy-pasteable commands to set up the backend and frontend (git clone, pip install, npm install)
+  - Running the Application: The exact commands to start the backend and frontend servers
+- **High-Level Architecture Overview**: A brief explanation of the "collection of mini-apps" or "modular monolith" structure, directing them to the dedicated architecture document for details
+
 #### Layer 2: The "Architect's Blueprint" - ARCHITECTURE.md
 This document explains the "why" behind the project's structure. It's for the developer who needs to understand how the pieces fit together before they start adding a new one.
+
+- **Core Principles**: Document the key architectural decisions, especially the "mini-app" structure for both backend and frontend. Explain why this approach was chosen (maintainability, separation of concerns)
+- **Directory Structure Deep Dive**: Include the full directory trees for the root, backend, and frontend. Briefly explain the purpose of each major directory (/modules, /components, etc.)
+- **Data Flow**: A simple explanation or diagram showing how a user action flows through the system:
+  - User clicks a button in a React component
+  - The component's api.ts sends a request to the backend
+  - The main FastAPI server routes the request to the correct device module
+  - The device controller.py communicates with the hardware
+  - A response is sent back to the frontend, updating the UI
+- **How to Add a New Device**: A step-by-step guide for a future developer, e.g.:
+  - "Create a new directory under /backend/modules/"
+  - "Create controller.py, routes.py, etc., inside it"
+  - "The main server in main.py will auto-discover your routes"
+  - "Create a corresponding UI module under /frontend/src/modules/"
+  - "Add a new route in the main React router to display your new UI module"
 
 #### Layer 3: The "On-the-Ground Guide" - Module-Level README.md Files
 Each "mini-app" or module should have its own README.md file. This is for the developer who is tasked with fixing a bug or adding a feature to a specific device.
 
+- **Location**: Place a README.md inside each module's directory (e.g., /backend/modules/mircat/README.md and /frontend/src/modules/MIRcat/README.md)
+- **Backend Module README**:
+  - Device: Name of the hardware (e.g., Daylight MIRcat Laser)
+  - Communication: Protocol used (e.g., Serial, TCP/IP) and key parameters
+  - Key Commands: A list of the most important commands implemented in the controller.py
+  - Dependencies: Note any special SDKs, DLLs, or Python libraries required only for this module
+  - Quirks/Notes: Any strange behavior or important notes about the device (e.g., "Device requires a 500ms delay between commands")
+- **Frontend Module README**:
+  - Purpose: What this part of the UI does
+  - Key Components: A description of the main components inside the module and what they are for
+  - State Management: How UI state is handled for this module
+  - API Endpoints: List the backend API endpoints this UI module consumes
+
 #### Layer 4: The "Street-Level View" - Code Comments & Docstrings
 This is the most granular level of documentation, intended for someone reading the actual code.
+
+- **Python Docstrings**: Every Python function, especially in the controller files, should have a clear docstring explaining:
+  - What the function does
+  - Its arguments (:param:)
+  - What it returns (:return:)
+  - Any exceptions it might raise (:raises:)
+- **JSDoc for TypeScript/React**: Use JSDoc comments for critical functions, especially in the api.ts files, to explain parameters and return values
+- **Inline Comments**: Use comments sparingly but effectively to explain why a piece of code is doing something complex, non-obvious, or tricky. Don't explain what the code is doing (the code itself should do that); explain the intent
 
 ---
 
